@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DailyTask {
+  id          String   @id @default(uuid())
+  content     String
+  status      String   // 'PENDING', 'COMPLETED'
+  type        String   // 'TODAY', 'PLAN_TOMORROW'
+  planDate    DateTime? // Used to record the effective date for planned tasks
+  longTermId  String?
+  longTerm    LongTermGoal? @relation(fields: [longTermId], references: [id])
+  recurringTaskId String? // Link to the template if generated
+  isPersist   Boolean  @default(false) // Whether the task persists to the next day
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LongTermGoal {
+  id          String   @id @default(uuid())
+  content     String
+  status      String   // 'PENDING', 'COMPLETED'
+  tasks       DailyTask[]
+  subtasks    RecurringTask[]
+  createdAt   DateTime @default(now())
+}
+
+model RecurringTask {
+  id             String       @id @default(uuid())
+  content        String
+  longTermGoalId String
+  longTermGoal   LongTermGoal @relation(fields: [longTermGoalId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  year        Int
+  month       Int
+  content     String
+  recordTime  String   // Specific time string, e.g., "10th 19:00"
+  createdAt   DateTime @default(now())
+}

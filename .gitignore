@@ -1,0 +1,15 @@
+node_modules
+.env
+.DS_Store
+Thumbs.db
+
+# Build output
+dist
+dist_build
+out
+
+# Database
+*.db
+*.db-journal
+/src/generated/prisma
+prisma/dev.db
