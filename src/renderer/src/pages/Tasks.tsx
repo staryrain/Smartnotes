@@ -37,9 +37,19 @@ export function Tasks() {
     e.stopPropagation()
     await window.api.deleteTask(id)
     fetchTasks()
+    
   }
 
   const completedCount = tasks.filter(t => t.status === 'COMPLETED').length
+  const sortedTasks = [...tasks].sort((a: any, b: any) => {
+    if (a.status !== b.status) {
+      return a.status === 'COMPLETED' ? 1 : -1
+    }
+
+    const aTime = new Date(a.createdAt ?? 0).getTime()
+    const bTime = new Date(b.createdAt ?? 0).getTime()
+    return bTime - aTime
+  })
 
   return (
     <div className="flex flex-col h-full p-6 overflow-y-auto no-scrollbar">
@@ -79,7 +89,7 @@ export function Tasks() {
         )}
         
         <AnimatePresence>
-          {tasks.map(t => (
+          {sortedTasks.map(t => (
             <motion.div
               key={t.id}
               initial={{ opacity: 0, y: 10 }}

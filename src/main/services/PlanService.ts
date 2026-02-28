@@ -1,11 +1,21 @@
-import { prisma } from '../db'
+import { db } from '../db'
+import { randomUUID } from 'crypto'
 
 export class PlanService {
   static async getPlans() {
-    return prisma.dailyTask.findMany({
-      where: { type: 'PLAN_TOMORROW' },
-      orderBy: { createdAt: 'desc' }
-    })
+    const tasks = db.prepare(`
+      SELECT * FROM DailyTask
+      WHERE type = 'PLAN_TOMORROW'
+      ORDER BY createdAt DESC
+    `).all() as any[]
+
+    return tasks.map(t => ({
+      ...t,
+      isPersist: Boolean(t.isPersist),
+      createdAt: new Date(t.createdAt),
+      updatedAt: new Date(t.updatedAt),
+      planDate: t.planDate ? new Date(t.planDate) : null
+    }))
   }
 
   static async createPlan(content: string) {
@@ -13,37 +23,63 @@ export class PlanService {
     const tomorrow = new Date(now)
     tomorrow.setDate(tomorrow.getDate() + 1)
     tomorrow.setHours(6, 0, 0, 0)
+    
+    const id = randomUUID()
+    const nowTs = Date.now()
+    
+    const task = {
+      id,
+      content,
+      status: 'PENDING',
+      type: 'PLAN_TOMORROW',
+      planDate: tomorrow.getTime(),
+      isPersist: 0,
+      createdAt: nowTs,
+      updatedAt: nowTs,
+      longTermId: null,
+      recurringTaskId: null
+    }
 
-    return prisma.dailyTask.create({
-      data: {
-        content,
-        status: 'PENDING',
-        type: 'PLAN_TOMORROW',
-        planDate: tomorrow
-      }
-    })
+    const stmt = db.prepare(`
+      INSERT INTO DailyTask (id, content, status, type, planDate, isPersist, createdAt, updatedAt)
+      VALUES (@id, @content, @status, @type, @planDate, @isPersist, @createdAt, @updatedAt)
+    `)
+    
+    stmt.run(task)
+
+    return {
+      ...task,
+      isPersist: Boolean(task.isPersist),
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      planDate: new Date(task.planDate)
+    }
   }
 
   static async deletePlan(id: string) {
-    return prisma.dailyTask.delete({
-      where: { id }
-    })
+    const task = db.prepare('SELECT * FROM DailyTask WHERE id = ?').get(id) as any
+    if (!task) return null
+
+    db.prepare('DELETE FROM DailyTask WHERE id = ?').run(id)
+
+    return {
+      ...task,
+      isPersist: Boolean(task.isPersist),
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      planDate: task.planDate ? new Date(task.planDate) : null
+    }
   }
 
   static async checkAndMovePlans() {
-    const now = new Date()
+    const now = Date.now()
+    
     // Move plans that are due
-    await prisma.dailyTask.updateMany({
-      where: {
-        type: 'PLAN_TOMORROW',
-        planDate: {
-          lte: now
-        }
-      },
-      data: {
-        type: 'TODAY',
-        planDate: null // Clear it or keep it as history
-      }
-    })
+    db.prepare(`
+      UPDATE DailyTask
+      SET type = 'TODAY', planDate = NULL, updatedAt = ?
+      WHERE type = 'PLAN_TOMORROW'
+      AND planDate <= ?
+    `).run(now, now)
   }
 }

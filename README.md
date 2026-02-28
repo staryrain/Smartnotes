@@ -31,8 +31,7 @@ UI 风格参考：
 * React
 * TypeScript
 * Zustand（状态管理）
-* Prisma（ORM + Migration）
-* SQLite（本地数据库）
+* better-sqlite3（本地数据库）
 * Axios（网络请求）
 * TailwindCSS（UI）
 * Framer Motion（动效）
@@ -59,7 +58,7 @@ UI 风格参考：
              │
 ┌────────────▼───────────────┐
 │        Data Layer          │
-│ Prisma + SQLite            │
+│ better-sqlite3 + SQLite    │
 └────────────────────────────┘
 ```
 
@@ -133,47 +132,43 @@ UI 风格参考：
 
 ---
 
-# 🗄 五、数据层设计（Prisma + SQLite）
+# 🗄 五、数据层设计（SQLite）
 
 ## 数据模型设计
 
-### DailyTask (任务 & 计划)
+使用 better-sqlite3 直接操作 SQLite 数据库。
 
-```prisma
-model DailyTask {
-  id          String   @id @default(uuid())
-  content     String
-  status      String   // 'PENDING', 'COMPLETED'
-  type        String   // 'TODAY', 'PLAN_TOMORROW'
-  planDate    DateTime? // 用于记录计划生效的日期
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-```
+### DailyTask (任务 & 计划)
+*   **id**: TEXT (UUID)
+*   **content**: TEXT
+*   **status**: TEXT ('PENDING', 'COMPLETED')
+*   **type**: TEXT ('TODAY', 'PLAN_TOMORROW')
+*   **planDate**: INTEGER (Timestamp)
+*   **longTermId**: TEXT (关联 LongTermGoal)
+*   **recurringTaskId**: TEXT (关联 RecurringTask)
+*   **isPersist**: INTEGER (0 或 1)
+*   **createdAt**: INTEGER (Timestamp)
+*   **updatedAt**: INTEGER (Timestamp)
 
 ### LongTermGoal (长期计划)
+*   **id**: TEXT (UUID)
+*   **content**: TEXT
+*   **status**: TEXT ('PENDING', 'COMPLETED')
+*   **createdAt**: INTEGER (Timestamp)
 
-```prisma
-model LongTermGoal {
-  id          String   @id @default(uuid())
-  content     String
-  status      String   // 'PENDING', 'COMPLETED'
-  createdAt   DateTime @default(now())
-}
-```
+### RecurringTask (循环任务/子任务)
+*   **id**: TEXT (UUID)
+*   **content**: TEXT
+*   **longTermGoalId**: TEXT (关联 LongTermGoal)
+*   **createdAt**: INTEGER (Timestamp)
 
 ### Achievement (成就)
-
-```prisma
-model Achievement {
-  id          String   @id @default(uuid())
-  year        Int
-  month       Int
-  content     String
-  recordTime  String   // 记录的具体时间字符串，如 "10日 19点"
-  createdAt   DateTime @default(now())
-}
-```
+*   **id**: TEXT (UUID)
+*   **year**: INTEGER
+*   **month**: INTEGER
+*   **content**: TEXT
+*   **recordTime**: TEXT (如 "10日 19点")
+*   **createdAt**: INTEGER (Timestamp)
 
 ---
 
@@ -204,8 +199,6 @@ src/
 │   └── store/
 │       └── useStore.ts
 │
-├── prisma/
-│   └── schema.prisma
 └── types/
 ```
 
