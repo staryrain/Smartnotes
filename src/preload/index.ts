@@ -30,7 +30,10 @@ const api = {
   // Window controls
   setIgnoreMouseEvents: (ignore: boolean) => ipcRenderer.invoke('window:setIgnoreMouseEvents', ignore),
   minimizeToTray: () => ipcRenderer.invoke('window:minimizeToTray'),
-  setOpacity: (opacity: number) => ipcRenderer.invoke('window:setOpacity', opacity)
+  setOpacity: (opacity: number) => ipcRenderer.invoke('window:setOpacity', opacity),
+  setSkipTaskbar: (skip: boolean) => ipcRenderer.invoke('window:setSkipTaskbar', skip),
+  setAutoLaunch: (enable: boolean) => ipcRenderer.invoke('window:setAutoLaunch', enable),
+  getAutoLaunch: () => ipcRenderer.invoke('window:getAutoLaunch'),
 }
 
 if (process.contextIsolated) {

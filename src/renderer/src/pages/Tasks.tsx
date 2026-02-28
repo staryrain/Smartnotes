@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Tasks() {
-  const { tasks, fetchTasks, longTerms, fetchLongTerms, deleteTaskOptimistic } = useStore()
+  const { tasks, fetchTasks, longTerms, fetchLongTerms } = useStore()
   const [input, setInput] = useState('')
 
   useEffect(() => {
@@ -37,7 +37,6 @@ export function Tasks() {
     e.stopPropagation()
     await window.api.deleteTask(id)
     fetchTasks()
-    
   }
 
   const completedCount = tasks.filter(t => t.status === 'COMPLETED').length
@@ -92,7 +91,6 @@ export function Tasks() {
           {sortedTasks.map(t => (
             <motion.div
               key={t.id}
-              layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}

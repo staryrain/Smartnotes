@@ -26,5 +26,8 @@ interface Window {
     setIgnoreMouseEvents: (ignore: boolean) => Promise<void>
     minimizeToTray: () => Promise<void>
     setOpacity: (opacity: number) => Promise<void>
+    setSkipTaskbar: (skip: boolean) => Promise<void>
+    setAutoLaunch: (enable: boolean) => Promise<void>
+    getAutoLaunch: () => Promise<boolean>
   }
 }

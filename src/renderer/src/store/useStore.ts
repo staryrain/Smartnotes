@@ -8,20 +8,15 @@ interface Store {
   
   tasks: any[]
   fetchTasks: () => Promise<void>
-  deleteTaskOptimistic: (id: string) => Promise<void>
   
   plans: any[]
   fetchPlans: () => Promise<void>
-  deletePlanOptimistic: (id: string) => Promise<void>
   
   longTerms: any[]
   fetchLongTerms: () => Promise<void>
-  deleteLongTermOptimistic: (id: string) => Promise<void>
-  deleteLongTermSubtaskOptimistic: (id: string) => Promise<void>
   
   achievements: any[]
   fetchAchievements: () => Promise<void>
-  deleteAchievementOptimistic: (id: string) => Promise<void>
   
   opacity: number
   setOpacity: (val: number) => void
@@ -31,9 +26,15 @@ interface Store {
 
   hoveringCount: number
   setHovering: (isEnter: boolean) => void
+
+  isSkipTaskbar: boolean
+  setSkipTaskbar: (val: boolean) => void
+  isAutoLaunch: boolean
+  setAutoLaunch: (val: boolean) => void
+  checkAutoLaunch: () => Promise<void>
 }
 
-export const useStore = create<Store>((set, get) => ({
+export const useStore = create<Store>((set) => ({
   activeTab: 'tasks',
   setActiveTab: (tab) => set({ activeTab: tab }),
   
@@ -46,15 +47,6 @@ export const useStore = create<Store>((set, get) => ({
       console.error(e)
     }
   },
-  deleteTaskOptimistic: async (id) => {
-    set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }))
-    try {
-      await window.api.deleteTask(id)
-    } catch (e) {
-      console.error(e)
-      get().fetchTasks()
-    }
-  },
   
   plans: [],
   fetchPlans: async () => {
@@ -63,15 +55,6 @@ export const useStore = create<Store>((set, get) => ({
       set({ plans })
     } catch (e) {
       console.error(e)
-    }
-  },
-  deletePlanOptimistic: async (id) => {
-    set((state) => ({ plans: state.plans.filter((p) => p.id !== id) }))
-    try {
-      await window.api.deletePlan(id)
-    } catch (e) {
-      console.error(e)
-      get().fetchPlans()
     }
   },
   
@@ -84,29 +67,6 @@ export const useStore = create<Store>((set, get) => ({
       console.error(e)
     }
   },
-  deleteLongTermOptimistic: async (id) => {
-    set((state) => ({ longTerms: state.longTerms.filter((lt) => lt.id !== id) }))
-    try {
-      await window.api.deleteLongTerm(id)
-    } catch (e) {
-      console.error(e)
-      get().fetchLongTerms()
-    }
-  },
-  deleteLongTermSubtaskOptimistic: async (id) => {
-    set((state) => ({
-      longTerms: state.longTerms.map((lt) => ({
-        ...lt,
-        subtasks: lt.subtasks ? lt.subtasks.filter((st: any) => st.id !== id) : [],
-      })),
-    }))
-    try {
-      await window.api.deleteLongTermSubtask(id)
-    } catch (e) {
-      console.error(e)
-      get().fetchLongTerms()
-    }
-  },
   
   achievements: [],
   fetchAchievements: async () => {
@@ -115,15 +75,6 @@ export const useStore = create<Store>((set, get) => ({
       set({ achievements })
     } catch (e) {
       console.error(e)
-    }
-  },
-  deleteAchievementOptimistic: async (id) => {
-    set((state) => ({ achievements: state.achievements.filter((a) => a.id !== id) }))
-    try {
-      await window.api.deleteAchievement(id)
-    } catch (e) {
-      console.error(e)
-      get().fetchAchievements()
     }
   },
   
@@ -148,5 +99,26 @@ export const useStore = create<Store>((set, get) => ({
       window.api.setIgnoreMouseEvents(newCount === 0)
     }
     return { hoveringCount: newCount }
-  })
+  }),
+
+  isSkipTaskbar: false,
+  setSkipTaskbar: (val) => {
+    set({ isSkipTaskbar: val })
+    window.api.setSkipTaskbar(val)
+  },
+
+  isAutoLaunch: false,
+  setAutoLaunch: (val) => {
+    set({ isAutoLaunch: val })
+    window.api.setAutoLaunch(val)
+  },
+  
+  checkAutoLaunch: async () => {
+    try {
+      const isAutoLaunch = await window.api.getAutoLaunch()
+      set({ isAutoLaunch })
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }))

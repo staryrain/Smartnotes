@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
 export function LongTerm() {
-  const { longTerms, fetchLongTerms, fetchTasks, deleteLongTermOptimistic, deleteLongTermSubtaskOptimistic } = useStore()
+  const { longTerms, fetchLongTerms, fetchTasks } = useStore()
   const [input, setInput] = useState('')
   const [addingTaskId, setAddingTaskId] = useState<string | null>(null)
   const [taskInput, setTaskInput] = useState('')
@@ -33,7 +33,8 @@ export function LongTerm() {
   }
 
   const removeTask = async (id: string) => {
-    await deleteLongTermSubtaskOptimistic(id)
+    await window.api.deleteLongTermSubtask(id)
+    fetchLongTerms()
     fetchTasks()
   }
 
@@ -146,7 +147,6 @@ export function LongTerm() {
                   {t.subtasks.map((st: any) => (
                     <motion.div
                       key={st.id}
-                      layout
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       className="group flex items-center justify-between p-2 rounded-lg bg-white/5 border-l-2 border-indigo-400/50"

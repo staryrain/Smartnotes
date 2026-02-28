@@ -98,6 +98,22 @@ function setupWindowIPC() {
   ipcMain.handle('window:setOpacity', (_, opacity) => {
     mainWindow?.setOpacity(opacity)
   })
+  
+  ipcMain.handle('window:setSkipTaskbar', (_, skip) => {
+    mainWindow?.setSkipTaskbar(skip)
+  })
+
+  ipcMain.handle('window:setAutoLaunch', (_, enable) => {
+    app.setLoginItemSettings({
+      openAtLogin: enable,
+      openAsHidden: false, // Start with UI visible as requested
+      path: app.getPath('exe')
+    })
+  })
+
+  ipcMain.handle('window:getAutoLaunch', () => {
+    return app.getLoginItemSettings().openAtLogin
+  })
 }
 
 app.whenReady().then(() => {

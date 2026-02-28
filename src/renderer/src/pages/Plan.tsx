@@ -4,7 +4,7 @@ import { Calendar, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Plan() {
-  const { plans, fetchPlans, deletePlanOptimistic } = useStore()
+  const { plans, fetchPlans } = useStore()
   const [input, setInput] = useState('')
 
   useEffect(() => {
@@ -20,7 +20,8 @@ export function Plan() {
   }
 
   const remove = async (id: string) => {
-    await deletePlanOptimistic(id)
+    await window.api.deletePlan(id)
+    fetchPlans()
   }
 
   return (
@@ -50,7 +51,6 @@ export function Plan() {
           {plans.map(p => (
             <motion.div
               key={p.id}
-              layout
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, height: 0 }}
