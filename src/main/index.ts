@@ -18,7 +18,7 @@ function createWindow(): void {
     autoHideMenuBar: true,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     skipTaskbar: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

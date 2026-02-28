@@ -30,7 +30,7 @@ export function TopBar() {
         <button 
           onClick={togglePenetrate}
           className={clsx("p-1.5 rounded-md transition hover:bg-white/10", isPenetrate ? "text-white/30" : "text-green-400")}
-          title={isPenetrate ? "Click through enabled" : "Interactive mode"}
+          title={isPenetrate ? "鼠标穿透已开启" : "交互模式"}
         >
           <MousePointer2 size={16} />
         </button>

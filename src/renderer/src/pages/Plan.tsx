@@ -4,7 +4,7 @@ import { Calendar, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Plan() {
-  const { plans, fetchPlans } = useStore()
+  const { plans, fetchPlans, deletePlanOptimistic } = useStore()
   const [input, setInput] = useState('')
 
   useEffect(() => {
@@ -20,12 +20,11 @@ export function Plan() {
   }
 
   const remove = async (id: string) => {
-    await window.api.deletePlan(id)
-    fetchPlans()
+    await deletePlanOptimistic(id)
   }
 
   return (
-    <div className="flex flex-col h-full p-6 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full p-6 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-2">明日计划</h1>
       <p className="text-sm text-white/50 mb-6">将在明早 06:00 自动转入任务列表</p>
 
@@ -51,6 +50,7 @@ export function Plan() {
           {plans.map(p => (
             <motion.div
               key={p.id}
+              layout
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, height: 0 }}

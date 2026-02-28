@@ -8,15 +8,20 @@ interface Store {
   
   tasks: any[]
   fetchTasks: () => Promise<void>
+  deleteTaskOptimistic: (id: string) => Promise<void>
   
   plans: any[]
   fetchPlans: () => Promise<void>
+  deletePlanOptimistic: (id: string) => Promise<void>
   
   longTerms: any[]
   fetchLongTerms: () => Promise<void>
+  deleteLongTermOptimistic: (id: string) => Promise<void>
+  deleteLongTermSubtaskOptimistic: (id: string) => Promise<void>
   
   achievements: any[]
   fetchAchievements: () => Promise<void>
+  deleteAchievementOptimistic: (id: string) => Promise<void>
   
   opacity: number
   setOpacity: (val: number) => void
@@ -28,7 +33,7 @@ interface Store {
   setHovering: (isEnter: boolean) => void
 }
 
-export const useStore = create<Store>((set) => ({
+export const useStore = create<Store>((set, get) => ({
   activeTab: 'tasks',
   setActiveTab: (tab) => set({ activeTab: tab }),
   
@@ -41,6 +46,15 @@ export const useStore = create<Store>((set) => ({
       console.error(e)
     }
   },
+  deleteTaskOptimistic: async (id) => {
+    set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }))
+    try {
+      await window.api.deleteTask(id)
+    } catch (e) {
+      console.error(e)
+      get().fetchTasks()
+    }
+  },
   
   plans: [],
   fetchPlans: async () => {
@@ -49,6 +63,15 @@ export const useStore = create<Store>((set) => ({
       set({ plans })
     } catch (e) {
       console.error(e)
+    }
+  },
+  deletePlanOptimistic: async (id) => {
+    set((state) => ({ plans: state.plans.filter((p) => p.id !== id) }))
+    try {
+      await window.api.deletePlan(id)
+    } catch (e) {
+      console.error(e)
+      get().fetchPlans()
     }
   },
   
@@ -61,6 +84,29 @@ export const useStore = create<Store>((set) => ({
       console.error(e)
     }
   },
+  deleteLongTermOptimistic: async (id) => {
+    set((state) => ({ longTerms: state.longTerms.filter((lt) => lt.id !== id) }))
+    try {
+      await window.api.deleteLongTerm(id)
+    } catch (e) {
+      console.error(e)
+      get().fetchLongTerms()
+    }
+  },
+  deleteLongTermSubtaskOptimistic: async (id) => {
+    set((state) => ({
+      longTerms: state.longTerms.map((lt) => ({
+        ...lt,
+        subtasks: lt.subtasks ? lt.subtasks.filter((st: any) => st.id !== id) : [],
+      })),
+    }))
+    try {
+      await window.api.deleteLongTermSubtask(id)
+    } catch (e) {
+      console.error(e)
+      get().fetchLongTerms()
+    }
+  },
   
   achievements: [],
   fetchAchievements: async () => {
@@ -69,6 +115,15 @@ export const useStore = create<Store>((set) => ({
       set({ achievements })
     } catch (e) {
       console.error(e)
+    }
+  },
+  deleteAchievementOptimistic: async (id) => {
+    set((state) => ({ achievements: state.achievements.filter((a) => a.id !== id) }))
+    try {
+      await window.api.deleteAchievement(id)
+    } catch (e) {
+      console.error(e)
+      get().fetchAchievements()
     }
   },
   

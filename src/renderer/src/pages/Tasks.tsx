@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function Tasks() {
-  const { tasks, fetchTasks, longTerms, fetchLongTerms } = useStore()
+  const { tasks, fetchTasks, longTerms, fetchLongTerms, deleteTaskOptimistic } = useStore()
   const [input, setInput] = useState('')
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function Tasks() {
   })
 
   return (
-    <div className="flex flex-col h-full p-6 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full p-6 overflow-y-auto">
       {/* Long Term Goals */}
       {longTerms.length > 0 && (
         <div className="mb-8">
@@ -92,6 +92,7 @@ export function Tasks() {
           {sortedTasks.map(t => (
             <motion.div
               key={t.id}
+              layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -108,7 +109,7 @@ export function Tasks() {
               <button 
                 onClick={(e) => togglePersist(e, t)}
                 className={clsx("p-2 rounded-lg transition opacity-0 group-hover:opacity-100", t.isPersist ? "text-yellow-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
-                title={t.isPersist ? "Persistent task (won't clear tomorrow)" : "Click to persist"}
+                title={t.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
               >
                 <InfinityIcon size={18} />
               </button>

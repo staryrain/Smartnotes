@@ -4,7 +4,7 @@ import { Trophy, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export function Achievements() {
-  const { achievements, fetchAchievements } = useStore()
+  const { achievements, fetchAchievements, deleteAchievementOptimistic } = useStore()
   const [year, setYear] = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [content, setContent] = useState('')
@@ -22,8 +22,7 @@ export function Achievements() {
   }
 
   const remove = async (id: string) => {
-    await window.api.deleteAchievement(id)
-    fetchAchievements()
+    await deleteAchievementOptimistic(id)
   }
 
   // Group achievements
@@ -38,7 +37,7 @@ export function Achievements() {
   const years = Object.keys(grouped).sort((a, b) => Number(b) - Number(a))
 
   return (
-    <div className="flex flex-col h-full p-6 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full p-6 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
         <Trophy className="text-yellow-400" />
         成就
@@ -86,6 +85,7 @@ export function Achievements() {
                     {grouped[y][m].map((a: any) => (
                       <motion.div
                         key={a.id}
+                        layout
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         className="group relative bg-gradient-to-r from-white/10 to-transparent p-4 rounded-xl border-l-4 border-yellow-400"
