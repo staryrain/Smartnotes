@@ -154,7 +154,7 @@ export class TaskService {
   static async checkAndCreateRecurringTasks() {
     // 1. Get all recurring tasks
     const recurringTasks = db.prepare('SELECT * FROM RecurringTask').all() as any[]
-    if (recurringTasks.length === 0) return
+    if (recurringTasks.length === 0) return false
 
     // 2. Get today's start and end time
     const today = new Date()
@@ -200,6 +200,9 @@ export class TaskService {
       })
       
       insertMany(tasksToCreate)
+      return true
     }
+
+    return false
   }
 }

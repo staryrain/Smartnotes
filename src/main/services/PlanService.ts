@@ -75,11 +75,13 @@ export class PlanService {
     const now = Date.now()
     
     // Move plans that are due
-    db.prepare(`
+    const result = db.prepare(`
       UPDATE DailyTask
-      SET type = 'TODAY', planDate = NULL, updatedAt = ?
+      SET type = 'TODAY', planDate = NULL, updatedAt = ?, createdAt = ?
       WHERE type = 'PLAN_TOMORROW'
       AND planDate <= ?
-    `).run(now, now)
+    `).run(now, now, now)
+
+    return result.changes > 0
   }
 }

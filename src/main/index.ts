@@ -133,10 +133,21 @@ app.whenReady().then(() => {
   createWindow()
   createTray()
   
+  let lastCheckDate = new Date()
+
   // Check plans periodically
-  setInterval(() => {
-    PlanService.checkAndMovePlans()
-    TaskService.checkAndCreateRecurringTasks()
+  setInterval(async () => {
+    const plansMoved = await PlanService.checkAndMovePlans()
+    const recurringCreated = await TaskService.checkAndCreateRecurringTasks()
+    
+    // Check if day changed
+    const now = new Date()
+    const isNewDay = now.getDate() !== lastCheckDate.getDate()
+    
+    if (plansMoved || recurringCreated || isNewDay) {
+      if (isNewDay) lastCheckDate = now
+      mainWindow?.webContents.send('data-updated')
+    }
   }, 60 * 1000)
 
   // Initial check

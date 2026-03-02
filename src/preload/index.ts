@@ -35,6 +35,13 @@ const api = {
   setSkipTaskbar: (skip: boolean) => ipcRenderer.invoke('window:setSkipTaskbar', skip),
   setAutoLaunch: (enable: boolean) => ipcRenderer.invoke('window:setAutoLaunch', enable),
   getAutoLaunch: () => ipcRenderer.invoke('window:getAutoLaunch'),
+  
+  // Events
+  onDataUpdated: (callback: () => void) => {
+    const subscription = (_event: any) => callback()
+    ipcRenderer.on('data-updated', subscription)
+    return () => ipcRenderer.removeListener('data-updated', subscription)
+  }
 }
 
 if (process.contextIsolated) {

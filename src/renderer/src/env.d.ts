@@ -30,5 +30,7 @@ interface Window {
     setSkipTaskbar: (skip: boolean) => Promise<void>
     setAutoLaunch: (enable: boolean) => Promise<void>
     getAutoLaunch: () => Promise<boolean>
+    
+    onDataUpdated: (callback: () => void) => () => void
   }
 }

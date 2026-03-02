@@ -10,7 +10,15 @@ import { useStore } from './store/useStore'
 import clsx from 'clsx'
 
 function App() {
-  const { activeTab, opacity } = useStore()
+  const { activeTab, opacity, refreshAll } = useStore()
+
+  useEffect(() => {
+    // Listen for data updates (new day, plan moved, etc)
+    const unsubscribe = window.api.onDataUpdated(() => {
+      refreshAll()
+    })
+    return unsubscribe
+  }, [])
 
   return (
     <div 

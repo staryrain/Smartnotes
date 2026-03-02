@@ -32,9 +32,11 @@ interface Store {
   isAutoLaunch: boolean
   setAutoLaunch: (val: boolean) => void
   checkAutoLaunch: () => Promise<void>
+  
+  refreshAll: () => Promise<void>
 }
 
-export const useStore = create<Store>((set) => ({
+export const useStore = create<Store>((set, get) => ({
   activeTab: 'tasks',
   setActiveTab: (tab) => set({ activeTab: tab }),
   
@@ -120,5 +122,16 @@ export const useStore = create<Store>((set) => ({
     } catch (e) {
       console.error(e)
     }
+  },
+
+  refreshAll: async () => {
+    // 1. Fetch Tasks (Old gone, New appear)
+    await get().fetchTasks()
+    
+    // 2. Fetch Plans (Moved gone)
+    await get().fetchPlans()
+    
+    // 3. Fetch Long Terms (Just in case)
+    await get().fetchLongTerms()
   }
 }))
