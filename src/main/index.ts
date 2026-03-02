@@ -23,7 +23,8 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      contextIsolation: true
+      contextIsolation: true,
+      devTools: false // Disable devtools to prevent default window behavior
     }
   })
 
@@ -36,6 +37,7 @@ function createWindow(): void {
     height: height - 200
   })
 
+  // Only show when ready
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
   })
@@ -107,7 +109,8 @@ function setupWindowIPC() {
     app.setLoginItemSettings({
       openAtLogin: enable,
       openAsHidden: false, // Start with UI visible as requested
-      path: app.getPath('exe')
+      path: app.getPath('exe'),
+      args: [] // Ensure no extra args that might cause default window behavior
     })
   })
 
