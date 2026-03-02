@@ -106,6 +106,8 @@ function setupWindowIPC() {
   })
 
   ipcMain.handle('window:setAutoLaunch', (_, enable) => {
+    if (!app.isPackaged) return // Disable in dev
+
     app.setLoginItemSettings({
       openAtLogin: enable,
       openAsHidden: false, // Start with UI visible as requested
