@@ -130,19 +130,19 @@ export function Tasks() {
                 {t.content}
               </span>
               
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1">
                 {t.status !== 'COMPLETED' && (
                   <>
                     <button 
                       onClick={(e) => togglePin(e, t)}
-                      className={clsx("p-1.5 rounded-lg transition", t.isPinned ? "text-indigo-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
+                      className={clsx("p-1.5 rounded-lg transition", t.isPinned ? "text-indigo-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10 opacity-0 group-hover:opacity-100")}
                       title={t.isPinned ? "取消置顶" : "置顶"}
                     >
                       <Pin size={16} />
                     </button>
                     <button 
                       onClick={(e) => togglePersist(e, t)}
-                      className={clsx("p-1.5 rounded-lg transition", t.isPersist ? "text-amber-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
+                      className={clsx("p-1.5 rounded-lg transition opacity-0 group-hover:opacity-100", t.isPersist ? "text-amber-400" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
                       title={t.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
                     >
                       <InfinityIcon size={16} />
@@ -152,7 +152,7 @@ export function Tasks() {
 
                 <button 
                   onClick={(e) => remove(e, t.id)}
-                  className="p-1.5 text-red-400 hover:bg-white/10 rounded-lg transition"
+                  className="p-1.5 text-red-400 hover:bg-white/10 rounded-lg transition opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 size={16} />
                 </button>
