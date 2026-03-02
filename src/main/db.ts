@@ -55,6 +55,19 @@ const initDb = () => {
     for (const sql of createTables) {
       db.prepare(sql).run()
     }
+    
+    // Migrations
+    try {
+      db.prepare('ALTER TABLE DailyTask ADD COLUMN isPinned INTEGER DEFAULT 0').run()
+    } catch (e) {
+      // Column already exists
+    }
+    
+    try {
+      db.prepare('ALTER TABLE DailyTask ADD COLUMN pinnedAt INTEGER DEFAULT NULL').run()
+    } catch (e) {
+      // Column already exists
+    }
   })()
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useStore } from '../store/useStore'
-import { Circle, CheckCircle, Trash2, Infinity as InfinityIcon } from 'lucide-react'
+import { Circle, CheckCircle, Trash2, Infinity as InfinityIcon, Pin } from 'lucide-react'
 import clsx from 'clsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -33,6 +33,12 @@ export function Tasks() {
     fetchTasks()
   }
 
+  const togglePin = async (e: React.MouseEvent, task: any) => {
+    e.stopPropagation()
+    await window.api.updateTaskPin(task.id, !task.isPinned)
+    fetchTasks()
+  }
+
   const remove = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     await window.api.deleteTask(id)
@@ -45,6 +51,26 @@ export function Tasks() {
       return a.status === 'COMPLETED' ? 1 : -1
     }
 
+    if (a.status === 'COMPLETED') {
+      const aTime = new Date(a.createdAt ?? 0).getTime()
+      const bTime = new Date(b.createdAt ?? 0).getTime()
+      return bTime - aTime
+    }
+
+    // Active tasks sorting
+    // 1. Pinned tasks first
+    if (a.isPinned !== b.isPinned) {
+      return a.isPinned ? -1 : 1
+    }
+
+    // 2. Pinned tasks sorted by pinnedAt ascending (earliest pinned first)
+    if (a.isPinned && b.isPinned) {
+      const aPin = a.pinnedAt || 0
+      const bPin = b.pinnedAt || 0
+      return aPin - bPin
+    }
+
+    // 3. Unpinned tasks sorted by createdAt descending
     const aTime = new Date(a.createdAt ?? 0).getTime()
     const bTime = new Date(b.createdAt ?? 0).getTime()
     return bTime - aTime
@@ -104,20 +130,33 @@ export function Tasks() {
                 {t.content}
               </span>
               
-              <button 
-                onClick={(e) => togglePersist(e, t)}
-                className={clsx("p-2 rounded-lg transition opacity-0 group-hover:opacity-100", t.isPersist ? "text-yellow-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
-                title={t.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
-              >
-                <InfinityIcon size={18} />
-              </button>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {t.status !== 'COMPLETED' && (
+                  <>
+                    <button 
+                      onClick={(e) => togglePin(e, t)}
+                      className={clsx("p-1.5 rounded-lg transition", t.isPinned ? "text-indigo-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
+                      title={t.isPinned ? "取消置顶" : "置顶"}
+                    >
+                      <Pin size={16} />
+                    </button>
+                    <button 
+                      onClick={(e) => togglePersist(e, t)}
+                      className={clsx("p-1.5 rounded-lg transition", t.isPersist ? "text-amber-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
+                      title={t.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
+                    >
+                      <InfinityIcon size={16} />
+                    </button>
+                  </>
+                )}
 
-              <button 
-                onClick={(e) => remove(e, t.id)}
-                className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-white/10 rounded-lg transition"
-              >
-                <Trash2 size={18} />
-              </button>
+                <button 
+                  onClick={(e) => remove(e, t.id)}
+                  className="p-1.5 text-red-400 hover:bg-white/10 rounded-lg transition"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>

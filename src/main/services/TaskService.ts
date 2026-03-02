@@ -19,6 +19,8 @@ export class TaskService {
     return tasks.map(t => ({
       ...t,
       isPersist: Boolean(t.isPersist),
+      isPinned: Boolean(t.isPinned),
+      pinnedAt: t.pinnedAt,
       createdAt: new Date(t.createdAt),
       updatedAt: new Date(t.updatedAt),
       planDate: t.planDate ? new Date(t.planDate) : null
@@ -29,8 +31,8 @@ export class TaskService {
     const id = randomUUID()
     const now = Date.now()
     const stmt = db.prepare(`
-      INSERT INTO DailyTask (id, content, status, type, longTermId, isPersist, createdAt, updatedAt)
-      VALUES (@id, @content, 'PENDING', 'TODAY', @longTermId, 0, @createdAt, @updatedAt)
+      INSERT INTO DailyTask (id, content, status, type, longTermId, isPersist, isPinned, pinnedAt, createdAt, updatedAt)
+      VALUES (@id, @content, 'PENDING', 'TODAY', @longTermId, 0, 0, NULL, @createdAt, @updatedAt)
     `)
 
     const task = {
@@ -40,6 +42,8 @@ export class TaskService {
       type: 'TODAY',
       longTermId: longTermId || null,
       isPersist: false,
+      isPinned: false,
+      pinnedAt: null,
       createdAt: now,
       updatedAt: now,
       planDate: null,
@@ -75,6 +79,8 @@ export class TaskService {
     return {
       ...task,
       isPersist: Boolean(task.isPersist),
+      isPinned: Boolean(task.isPinned),
+      pinnedAt: task.pinnedAt,
       createdAt: new Date(task.createdAt),
       updatedAt: new Date(task.updatedAt),
       planDate: task.planDate ? new Date(task.planDate) : null
@@ -95,6 +101,35 @@ export class TaskService {
     return {
       ...task,
       isPersist: Boolean(task.isPersist),
+      isPinned: Boolean(task.isPinned),
+      pinnedAt: task.pinnedAt,
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      planDate: task.planDate ? new Date(task.planDate) : null
+    }
+  }
+
+  static async updatePin(id: string, isPinned: boolean) {
+    const now = Date.now()
+    const stmt = db.prepare(`
+      UPDATE DailyTask
+      SET isPinned = @isPinned, pinnedAt = @pinnedAt, updatedAt = @updatedAt
+      WHERE id = @id
+    `)
+    stmt.run({ 
+      id, 
+      isPinned: isPinned ? 1 : 0, 
+      pinnedAt: isPinned ? now : null,
+      updatedAt: now 
+    })
+    
+    // Return updated task
+    const task = db.prepare('SELECT * FROM DailyTask WHERE id = ?').get(id) as any
+    return {
+      ...task,
+      isPersist: Boolean(task.isPersist),
+      isPinned: Boolean(task.isPinned),
+      pinnedAt: task.pinnedAt,
       createdAt: new Date(task.createdAt),
       updatedAt: new Date(task.updatedAt),
       planDate: task.planDate ? new Date(task.planDate) : null
