@@ -120,10 +120,15 @@ export function Tasks() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition cursor-pointer border border-transparent hover:border-white/5"
-              onClick={() => toggle(t)}
+              className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-transparent hover:border-white/5"
             >
-              <button className={clsx("transition-colors mt-0.5", t.status === 'COMPLETED' ? "text-green-400" : "text-white/20 group-hover:text-white/40")}>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggle(t)
+                }}
+                className={clsx("transition-colors mt-0.5 cursor-pointer", t.status === 'COMPLETED' ? "text-green-400" : "text-white/20 group-hover:text-white/40")}
+              >
                 {t.status === 'COMPLETED' ? <CheckCircle size={22} /> : <Circle size={22} />}
               </button>
               <span className={clsx("flex-1 transition-all leading-relaxed", t.status === 'COMPLETED' && "line-through text-white/30")}>
