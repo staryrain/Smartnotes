@@ -6,12 +6,16 @@ export class PlanService {
     const tasks = db.prepare(`
       SELECT * FROM DailyTask
       WHERE type = 'PLAN_TOMORROW'
-      ORDER BY createdAt DESC
+      ORDER BY 
+        isCustomTime DESC,
+        CASE WHEN isCustomTime = 1 THEN planDate END ASC,
+        createdAt DESC
     `).all() as any[]
 
     return tasks.map(t => ({
       ...t,
       isPersist: Boolean(t.isPersist),
+      isCustomTime: Boolean(t.isCustomTime),
       createdAt: new Date(t.createdAt),
       updatedAt: new Date(t.updatedAt),
       planDate: t.planDate ? new Date(t.planDate) : null
@@ -34,6 +38,7 @@ export class PlanService {
       type: 'PLAN_TOMORROW',
       planDate: tomorrow.getTime(),
       isPersist: 0,
+      isCustomTime: 0,
       createdAt: nowTs,
       updatedAt: nowTs,
       longTermId: null,
@@ -41,8 +46,8 @@ export class PlanService {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO DailyTask (id, content, status, type, planDate, isPersist, createdAt, updatedAt)
-      VALUES (@id, @content, @status, @type, @planDate, @isPersist, @createdAt, @updatedAt)
+      INSERT INTO DailyTask (id, content, status, type, planDate, isPersist, isCustomTime, createdAt, updatedAt)
+      VALUES (@id, @content, @status, @type, @planDate, @isPersist, @isCustomTime, @createdAt, @updatedAt)
     `)
     
     stmt.run(task)
@@ -50,6 +55,7 @@ export class PlanService {
     return {
       ...task,
       isPersist: Boolean(task.isPersist),
+      isCustomTime: Boolean(task.isCustomTime),
       createdAt: new Date(task.createdAt),
       updatedAt: new Date(task.updatedAt),
       planDate: new Date(task.planDate)
@@ -65,6 +71,39 @@ export class PlanService {
     return {
       ...task,
       isPersist: Boolean(task.isPersist),
+      isCustomTime: Boolean(task.isCustomTime),
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      planDate: task.planDate ? new Date(task.planDate) : null
+    }
+  }
+
+  static async updatePlanTime(id: string, planDate: number | null, isCustomTime: boolean) {
+    const now = Date.now()
+    let newPlanDate = planDate
+
+    if (!isCustomTime) {
+      const d = new Date()
+      d.setDate(d.getDate() + 1)
+      d.setHours(6, 0, 0, 0)
+      newPlanDate = d.getTime()
+    }
+
+    const stmt = db.prepare(`
+      UPDATE DailyTask
+      SET planDate = ?, isCustomTime = ?, updatedAt = ?
+      WHERE id = ?
+    `)
+    
+    const result = stmt.run(newPlanDate, isCustomTime ? 1 : 0, now, id)
+    
+    if (result.changes === 0) return null
+    
+    const task = db.prepare('SELECT * FROM DailyTask WHERE id = ?').get(id) as any
+    return {
+      ...task,
+      isPersist: Boolean(task.isPersist),
+      isCustomTime: Boolean(task.isCustomTime),
       createdAt: new Date(task.createdAt),
       updatedAt: new Date(task.updatedAt),
       planDate: task.planDate ? new Date(task.planDate) : null

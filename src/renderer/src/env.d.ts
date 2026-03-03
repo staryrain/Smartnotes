@@ -13,6 +13,7 @@ interface Window {
     getPlans: () => Promise<any[]>
     createPlan: (content: string) => Promise<any>
     deletePlan: (id: string) => Promise<any>
+    updatePlanTime: (id: string, planDate: number | null, isCustomTime: boolean) => Promise<any>
     
     getLongTerms: () => Promise<any[]>
     createLongTerm: (content: string) => Promise<any>

@@ -15,6 +15,7 @@ const api = {
   getPlans: () => ipcRenderer.invoke('plan:get'),
   createPlan: (content: string) => ipcRenderer.invoke('plan:create', content),
   deletePlan: (id: string) => ipcRenderer.invoke('plan:delete', id),
+  updatePlanTime: (id: string, planDate: number | null, isCustomTime: boolean) => ipcRenderer.invoke('plan:updateTime', id, planDate, isCustomTime),
 
   // Long Term
   getLongTerms: () => ipcRenderer.invoke('longterm:get'),

@@ -30,6 +30,7 @@ export function setupIPC() {
   handle('plan:get', () => PlanService.getPlans())
   handle('plan:create', (_, content) => PlanService.createPlan(content))
   handle('plan:delete', (_, id) => PlanService.deletePlan(id))
+  handle('plan:updateTime', (_, id, planDate, isCustomTime) => PlanService.updatePlanTime(id, planDate, isCustomTime))
   
   // Long Term
   handle('longterm:get', () => LongTermService.getGoals())
