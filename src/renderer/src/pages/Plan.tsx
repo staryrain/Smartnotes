@@ -119,7 +119,7 @@ export function Plan() {
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="规划明天..."
+          placeholder="规划..."
           className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 outline-none focus:bg-white/10 focus:border-white/20 transition placeholder:text-white/20 text-lg"
         />
       </form>
@@ -128,7 +128,7 @@ export function Plan() {
         {plans.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-white/20">
             <Calendar size={48} className="mb-2 opacity-50" />
-            <div className="text-sm">暂无明日计划</div>
+            <div className="text-sm">暂无计划</div>
           </div>
         )}
         
