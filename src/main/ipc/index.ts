@@ -23,6 +23,7 @@ export function setupIPC() {
   handle('task:updateStatus', (_, id, status) => TaskService.updateStatus(id, status))
   handle('task:updatePersist', (_, id, isPersist) => TaskService.updatePersist(id, isPersist))
   handle('task:updatePin', (_, id, isPinned) => TaskService.updatePin(id, isPinned))
+  handle('task:reorder', (_, ids) => TaskService.reorderTasks(ids))
   handle('task:delete', (_, id) => TaskService.deleteTask(id))
 
   // Plans

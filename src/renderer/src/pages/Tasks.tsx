@@ -1,12 +1,36 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '../store/useStore'
-import { Circle, CheckCircle, Trash2, Infinity as InfinityIcon, Pin } from 'lucide-react'
-import clsx from 'clsx'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  DragStartEvent,
+  DragEndEvent,
+  DragCancelEvent,
+  DropAnimation,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { motion, AnimatePresence } from 'framer-motion'
+import { TaskItem } from '../components/TaskItem'
+import { SortableTaskItem } from '../components/SortableTaskItem'
+import clsx from 'clsx'
 
 export function Tasks() {
   const { tasks, fetchTasks, longTerms, fetchLongTerms } = useStore()
   const [input, setInput] = useState('')
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [items, setItems] = useState<any[]>([])
 
   useEffect(() => {
     fetchTasks()
@@ -45,36 +69,112 @@ export function Tasks() {
     fetchTasks()
   }
 
-  const completedCount = tasks.filter(t => t.status === 'COMPLETED').length
-  const sortedTasks = [...tasks].sort((a: any, b: any) => {
-    if (a.status !== b.status) {
-      return a.status === 'COMPLETED' ? 1 : -1
-    }
+  const sortedTasks = useMemo(() => {
+    // Separate Completed and Pending
+    const pending = tasks.filter(t => t.status !== 'COMPLETED')
+    const completed = tasks.filter(t => t.status === 'COMPLETED')
 
-    if (a.status === 'COMPLETED') {
+    // Sort Pending
+    pending.sort((a: any, b: any) => {
+      // 1. Pinned first
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1
+      }
+      
+      // 2. Use list_order if different
+      if (a.list_order !== b.list_order) {
+        return (a.list_order || 0) - (b.list_order || 0)
+      }
+
+      // 3. Fallback to existing logic if list_order is 0 (e.g. legacy or new items)
+      if (a.isPinned && b.isPinned) {
+        const aPin = a.pinnedAt || 0
+        const bPin = b.pinnedAt || 0
+        return aPin - bPin
+      }
+
       const aTime = new Date(a.createdAt ?? 0).getTime()
       const bTime = new Date(b.createdAt ?? 0).getTime()
       return bTime - aTime
-    }
+    })
 
-    // Active tasks sorting
-    // 1. Pinned tasks first
-    if (a.isPinned !== b.isPinned) {
-      return a.isPinned ? -1 : 1
-    }
+    // Sort Completed (Time DESC)
+    completed.sort((a: any, b: any) => {
+      const aTime = new Date(a.createdAt ?? 0).getTime()
+      const bTime = new Date(b.createdAt ?? 0).getTime()
+      return bTime - aTime
+    })
 
-    // 2. Pinned tasks sorted by pinnedAt ascending (earliest pinned first)
-    if (a.isPinned && b.isPinned) {
-      const aPin = a.pinnedAt || 0
-      const bPin = b.pinnedAt || 0
-      return aPin - bPin
-    }
+    return [...pending, ...completed]
+  }, [tasks])
 
-    // 3. Unpinned tasks sorted by createdAt descending
-    const aTime = new Date(a.createdAt ?? 0).getTime()
-    const bTime = new Date(b.createdAt ?? 0).getTime()
-    return bTime - aTime
-  })
+  // Sync items with sortedTasks, but try to preserve order if possible or just reset
+  // For this implementation, we reset on tasks change to ensure data consistency
+  // In a real app with backend persistence, we would load order from backend
+  useEffect(() => {
+    setItems(sortedTasks)
+  }, [sortedTasks])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Avoid accidental drags
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (!over) return
+
+    if (active.id !== over.id) {
+      const activeTask = items.find(t => t.id === active.id)
+      const overTask = items.find(t => t.id === over.id)
+
+      if (!activeTask || !overTask) return
+
+      // Constraints
+      if (overTask.status === 'COMPLETED') return
+      if (activeTask.isPinned && !overTask.isPinned) return
+      if (!activeTask.isPinned && overTask.isPinned) return
+
+      const oldIndex = items.findIndex((item) => item.id === active.id)
+      const newIndex = items.findIndex((item) => item.id === over.id)
+      
+      const newItems = arrayMove(items, oldIndex, newIndex)
+      
+      setItems(newItems)
+      window.api.reorderTasks(newItems.map(t => t.id))
+    }
+  }
+
+  const handleDragCancel = () => {
+    setActiveId(null)
+  }
+
+  const activeItem = useMemo(() => items.find((item) => item.id === activeId), [activeId, items])
+  const itemIds = useMemo(() => items.map(t => t.id), [items])
+
+  const dropAnimation: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: '0',
+        },
+      },
+    }),
+  }
+
+  const completedCount = tasks.filter(t => t.status === 'COMPLETED').length
 
   return (
     <div className="flex flex-col h-full p-6 overflow-y-auto">
@@ -105,7 +205,7 @@ export function Tasks() {
       </form>
 
       {/* Tasks List */}
-      <div className="flex-1 space-y-3">
+      <div className="flex-1">
         {tasks.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-white/20">
             <div className="text-sm">今日暂无任务</div>
@@ -113,58 +213,45 @@ export function Tasks() {
           </div>
         )}
         
-        <AnimatePresence>
-          {sortedTasks.map(t => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-transparent hover:border-white/5"
-            >
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggle(t)
-                }}
-                className={clsx("transition-colors mt-0.5 cursor-pointer", t.status === 'COMPLETED' ? "text-green-400" : "text-white/20 group-hover:text-white/40")}
-              >
-                {t.status === 'COMPLETED' ? <CheckCircle size={22} /> : <Circle size={22} />}
-              </button>
-              <span className={clsx("flex-1 transition-all leading-relaxed", t.status === 'COMPLETED' && "line-through text-white/30")}>
-                {t.content}
-              </span>
-              
-              <div className="flex items-center gap-1">
-                {t.status !== 'COMPLETED' && (
-                  <>
-                    <button 
-                      onClick={(e) => togglePin(e, t)}
-                      className={clsx("p-1.5 rounded-lg transition", t.isPinned ? "text-indigo-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10 opacity-0 group-hover:opacity-100")}
-                      title={t.isPinned ? "取消置顶" : "置顶"}
-                    >
-                      <Pin size={16} />
-                    </button>
-                    <button 
-                      onClick={(e) => togglePersist(e, t)}
-                      className={clsx("p-1.5 rounded-lg transition opacity-0 group-hover:opacity-100", t.isPersist ? "text-amber-400" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
-                      title={t.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
-                    >
-                      <InfinityIcon size={16} />
-                    </button>
-                  </>
-                )}
-
-                <button 
-                  onClick={(e) => remove(e, t.id)}
-                  className="p-1.5 text-red-400 hover:bg-white/10 rounded-lg transition opacity-0 group-hover:opacity-100"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
+          <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+            <div className={clsx("space-y-3", activeId && "opacity-85 transition-opacity")}>
+              <AnimatePresence mode='popLayout'>
+                {items.map(t => (
+                  <SortableTaskItem
+                    key={t.id}
+                    task={t}
+                    toggle={toggle}
+                    togglePersist={togglePersist}
+                    togglePin={togglePin}
+                    remove={remove}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </SortableContext>
+          {createPortal(
+            <DragOverlay dropAnimation={dropAnimation}>
+              {activeId && activeItem ? (
+                <TaskItem
+                  task={activeItem}
+                  isOverlay
+                  toggle={toggle}
+                  togglePersist={togglePersist}
+                  togglePin={togglePin}
+                  remove={remove}
+                />
+              ) : null}
+            </DragOverlay>,
+            document.body
+          )}
+        </DndContext>
       </div>
 
       {/* Footer */}

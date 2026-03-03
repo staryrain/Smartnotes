@@ -13,7 +13,7 @@ export class TaskService {
       SELECT * FROM DailyTask
       WHERE type = 'TODAY'
       AND (createdAt >= ? OR isPersist = 1)
-      ORDER BY createdAt DESC
+      ORDER BY isPinned DESC, list_order ASC, createdAt DESC
     `).all(todayTimestamp) as any[]
 
     return tasks.map(t => ({
@@ -21,10 +21,21 @@ export class TaskService {
       isPersist: Boolean(t.isPersist),
       isPinned: Boolean(t.isPinned),
       pinnedAt: t.pinnedAt,
+      list_order: t.list_order,
       createdAt: new Date(t.createdAt),
       updatedAt: new Date(t.updatedAt),
       planDate: t.planDate ? new Date(t.planDate) : null
     }))
+  }
+
+  static async reorderTasks(ids: string[]) {
+    const update = db.prepare('UPDATE DailyTask SET list_order = @order WHERE id = @id')
+    const updateMany = db.transaction((items) => {
+      for (const item of items) update.run(item)
+    })
+    
+    updateMany(ids.map((id, index) => ({ id, order: index })))
+    return true
   }
 
   static async createTask(content: string, longTermId?: string) {

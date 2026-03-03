@@ -7,6 +7,7 @@ interface Window {
     updateTaskStatus: (id: string, status: string) => Promise<any>
     updateTaskPersist: (id: string, isPersist: boolean) => Promise<any>
     updateTaskPin: (id: string, isPinned: boolean) => Promise<any>
+    reorderTasks: (ids: string[]) => Promise<any>
     deleteTask: (id: string) => Promise<any>
     
     getPlans: () => Promise<any[]>

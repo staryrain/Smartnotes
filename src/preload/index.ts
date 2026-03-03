@@ -8,6 +8,7 @@ const api = {
   updateTaskStatus: (id: string, status: string) => ipcRenderer.invoke('task:updateStatus', id, status),
   updateTaskPersist: (id: string, isPersist: boolean) => ipcRenderer.invoke('task:updatePersist', id, isPersist),
   updateTaskPin: (id: string, isPinned: boolean) => ipcRenderer.invoke('task:updatePin', id, isPinned),
+  reorderTasks: (ids: string[]) => ipcRenderer.invoke('task:reorder', ids),
   deleteTask: (id: string) => ipcRenderer.invoke('task:delete', id),
 
   // Plan

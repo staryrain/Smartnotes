@@ -68,6 +68,12 @@ const initDb = () => {
     } catch (e) {
       // Column already exists
     }
+
+    try {
+      db.prepare('ALTER TABLE DailyTask ADD COLUMN list_order INTEGER DEFAULT 0').run()
+    } catch (e) {
+      // Column already exists
+    }
   })()
 }
 
