@@ -28,6 +28,7 @@ const api = {
   // Achievement
   getAchievements: () => ipcRenderer.invoke('achievement:get'),
   createAchievement: (content: string, year: number, month: number) => ipcRenderer.invoke('achievement:create', content, year, month),
+  updateAchievement: (id: string, content: string) => ipcRenderer.invoke('achievement:update', id, content),
   deleteAchievement: (id: string) => ipcRenderer.invoke('achievement:delete', id),
 
   // Window controls

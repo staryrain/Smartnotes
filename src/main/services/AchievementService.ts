@@ -52,4 +52,17 @@ export class AchievementService {
       createdAt: new Date(achievement.createdAt)
     }
   }
+
+  static async updateAchievement(id: string, content: string) {
+    const achievement = db.prepare('SELECT * FROM Achievement WHERE id = ?').get(id) as any
+    if (!achievement) return null
+
+    db.prepare('UPDATE Achievement SET content = ? WHERE id = ?').run(content, id)
+
+    return {
+      ...achievement,
+      content,
+      createdAt: new Date(achievement.createdAt)
+    }
+  }
 }

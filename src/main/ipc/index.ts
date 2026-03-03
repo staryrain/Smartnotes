@@ -43,5 +43,6 @@ export function setupIPC() {
   // Achievements
   handle('achievement:get', () => AchievementService.getAchievements())
   handle('achievement:create', (_, content, year, month) => AchievementService.createAchievement(content, year, month))
+  handle('achievement:update', (_, id, content) => AchievementService.updateAchievement(id, content))
   handle('achievement:delete', (_, id) => AchievementService.deleteAchievement(id))
 }

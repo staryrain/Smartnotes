@@ -24,6 +24,7 @@ interface Window {
     
     getAchievements: () => Promise<any[]>
     createAchievement: (content: string, year: number, month: number) => Promise<any>
+    updateAchievement: (id: string, content: string) => Promise<any>
     deleteAchievement: (id: string) => Promise<any>
     
     setIgnoreMouseEvents: (ignore: boolean) => Promise<void>
