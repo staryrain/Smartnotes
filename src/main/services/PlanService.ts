@@ -78,6 +78,26 @@ export class PlanService {
     }
   }
 
+  static async updateContent(id: string, content: string) {
+    const now = Date.now()
+    const stmt = db.prepare(`
+      UPDATE DailyTask
+      SET content = @content, updatedAt = @updatedAt
+      WHERE id = @id
+    `)
+    stmt.run({ id, content, updatedAt: now })
+    
+    const task = db.prepare('SELECT * FROM DailyTask WHERE id = ?').get(id) as any
+    return {
+      ...task,
+      isPersist: Boolean(task.isPersist),
+      isCustomTime: Boolean(task.isCustomTime),
+      createdAt: new Date(task.createdAt),
+      updatedAt: new Date(task.updatedAt),
+      planDate: task.planDate ? new Date(task.planDate) : null
+    }
+  }
+
   static async updatePlanTime(id: string, planDate: number | null, isCustomTime: boolean) {
     const now = Date.now()
     let newPlanDate = planDate

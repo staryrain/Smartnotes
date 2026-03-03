@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Circle, CheckCircle, Trash2, Infinity as InfinityIcon, Pin, GripVertical } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -8,6 +8,7 @@ export interface TaskItemProps {
   toggle?: (task: any) => void
   togglePersist?: (e: React.MouseEvent, task: any) => void
   togglePin?: (e: React.MouseEvent, task: any) => void
+  updateContent?: (id: string, content: string) => void
   remove?: (e: React.MouseEvent, id: string) => void
   style?: React.CSSProperties
   dragListeners?: any
@@ -20,11 +21,49 @@ export const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({
   toggle, 
   togglePersist, 
   togglePin, 
+  updateContent,
   remove,
   style,
   dragListeners,
   dragAttributes
 }, ref) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(task.content)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      // Optional: Select all text on focus
+      // inputRef.current.select() 
+    }
+  }, [isEditing])
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (isOverlay) return
+    setIsEditing(true)
+    setEditValue(task.content)
+  }
+
+  const handleBlur = () => {
+    setIsEditing(false)
+    if (editValue.trim() && editValue !== task.content) {
+      updateContent?.(task.id, editValue)
+    } else {
+      setEditValue(task.content)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleBlur()
+    } else if (e.key === 'Escape') {
+      setIsEditing(false)
+      setEditValue(task.content)
+    }
+  }
+
   return (
     <div
       ref={ref}
@@ -62,9 +101,25 @@ export const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({
       >
         {task.status === 'COMPLETED' ? <CheckCircle size={22} /> : <Circle size={22} />}
       </button>
-      <span className={clsx("flex-1 transition-all leading-relaxed select-none", task.status === 'COMPLETED' && "line-through text-white/30")}>
-        {task.content}
-      </span>
+      
+      {isEditing ? (
+        <input
+          ref={inputRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 bg-transparent border-none outline-none text-white leading-relaxed p-0 m-0 w-full font-[inherit]"
+        />
+      ) : (
+        <span 
+          onDoubleClick={handleDoubleClick}
+          className={clsx("flex-1 transition-all leading-relaxed select-none cursor-text", task.status === 'COMPLETED' && "line-through text-white/30")}
+        >
+          {task.content}
+        </span>
+      )}
       
       <div className="flex items-center gap-1">
         {task.status !== 'COMPLETED' && (

@@ -9,11 +9,12 @@ interface SortableTaskItemProps {
   toggle: (task: any) => void
   togglePersist: (e: React.MouseEvent, task: any) => void
   togglePin: (e: React.MouseEvent, task: any) => void
+  updateContent: (id: string, content: string) => void
   remove: (e: React.MouseEvent, id: string) => void
   isOverlay?: boolean
 }
 
-export function SortableTaskItem({ task, toggle, togglePersist, togglePin, remove }: SortableTaskItemProps) {
+export function SortableTaskItem({ task, toggle, togglePersist, togglePin, updateContent, remove }: SortableTaskItemProps) {
   const {
     attributes,
     listeners,
@@ -51,6 +52,7 @@ export function SortableTaskItem({ task, toggle, togglePersist, togglePin, remov
         toggle={toggle} 
         togglePersist={togglePersist} 
         togglePin={togglePin} 
+        updateContent={updateContent}
         remove={remove}
         dragListeners={listeners}
         dragAttributes={attributes}

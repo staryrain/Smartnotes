@@ -13,6 +13,10 @@ export function Plan() {
   const [targetDate, setTargetDate] = useState('') // YYYY-MM-DD
   const [targetHour, setTargetHour] = useState(6)
 
+  // Content Editing State
+  const [editingContentId, setEditingContentId] = useState<string | null>(null)
+  const [editContentValue, setEditContentValue] = useState('')
+
   useEffect(() => {
     fetchPlans()
   }, [])
@@ -28,6 +32,26 @@ export function Plan() {
   const remove = async (id: string) => {
     await window.api.deletePlan(id)
     fetchPlans()
+  }
+
+  const saveContent = async () => {
+    if (!editingContentId) return
+    const original = plans.find(p => p.id === editingContentId)?.content
+    if (editContentValue.trim() && editContentValue !== original) {
+      await window.api.updatePlanContent(editingContentId, editContentValue)
+      fetchPlans()
+    }
+    setEditingContentId(null)
+    setEditContentValue('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveContent()
+    } else if (e.key === 'Escape') {
+      setEditingContentId(null)
+      setEditContentValue('')
+    }
   }
 
   const getLocalDateString = (date: Date) => {
@@ -142,7 +166,28 @@ export function Plan() {
               className="group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition border border-transparent hover:border-white/5"
             >
               <div className="flex flex-col flex-1 min-w-0 mr-4">
-                <span className="text-white/80 truncate">{p.content}</span>
+                {editingContentId === p.id ? (
+                  <input
+                    autoFocus
+                    value={editContentValue}
+                    onChange={(e) => setEditContentValue(e.target.value)}
+                    onBlur={saveContent}
+                    onKeyDown={handleKeyDown}
+                    className="bg-transparent border-none outline-none text-white/80 w-full p-0 m-0 font-[inherit]"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <span 
+                    className="text-white/80 truncate cursor-text select-none"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation()
+                      setEditingContentId(p.id)
+                      setEditContentValue(p.content)
+                    }}
+                  >
+                    {p.content}
+                  </span>
+                )}
                 {p.isCustomTime && (
                   <span className="text-xs text-blue-400 mt-1">
                     {formatPlanTime(p.planDate)}

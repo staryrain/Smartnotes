@@ -6,6 +6,7 @@ const api = {
   getTasks: () => ipcRenderer.invoke('task:get'),
   createTask: (content: string, longTermId?: string) => ipcRenderer.invoke('task:create', content, longTermId),
   updateTaskStatus: (id: string, status: string) => ipcRenderer.invoke('task:updateStatus', id, status),
+  updateTaskContent: (id: string, content: string) => ipcRenderer.invoke('task:updateContent', id, content),
   updateTaskPersist: (id: string, isPersist: boolean) => ipcRenderer.invoke('task:updatePersist', id, isPersist),
   updateTaskPin: (id: string, isPinned: boolean) => ipcRenderer.invoke('task:updatePin', id, isPinned),
   reorderTasks: (ids: string[]) => ipcRenderer.invoke('task:reorder', ids),
@@ -16,14 +17,17 @@ const api = {
   createPlan: (content: string) => ipcRenderer.invoke('plan:create', content),
   deletePlan: (id: string) => ipcRenderer.invoke('plan:delete', id),
   updatePlanTime: (id: string, planDate: number | null, isCustomTime: boolean) => ipcRenderer.invoke('plan:updateTime', id, planDate, isCustomTime),
+  updatePlanContent: (id: string, content: string) => ipcRenderer.invoke('plan:updateContent', id, content),
 
   // Long Term
   getLongTerms: () => ipcRenderer.invoke('longterm:get'),
   createLongTerm: (content: string) => ipcRenderer.invoke('longterm:create', content),
   updateLongTermStatus: (id: string, status: string) => ipcRenderer.invoke('longterm:updateStatus', id, status),
+  updateLongTermContent: (id: string, content: string) => ipcRenderer.invoke('longterm:updateContent', id, content),
   deleteLongTerm: (id: string) => ipcRenderer.invoke('longterm:delete', id),
   createLongTermSubtask: (longTermId: string, content: string) => ipcRenderer.invoke('longterm:createSubtask', longTermId, content),
   deleteLongTermSubtask: (id: string) => ipcRenderer.invoke('longterm:deleteSubtask', id),
+  updateLongTermSubtaskContent: (id: string, content: string) => ipcRenderer.invoke('longterm:updateSubtaskContent', id, content),
 
   // Achievement
   getAchievements: () => ipcRenderer.invoke('achievement:get'),

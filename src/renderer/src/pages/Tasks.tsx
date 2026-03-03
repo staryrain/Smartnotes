@@ -69,6 +69,11 @@ export function Tasks() {
     fetchTasks()
   }
 
+  const updateContent = async (id: string, content: string) => {
+    await window.api.updateTaskContent(id, content)
+    fetchTasks()
+  }
+
   const sortedTasks = useMemo(() => {
     // Separate Completed and Pending
     const pending = tasks.filter(t => t.status !== 'COMPLETED')
@@ -230,6 +235,7 @@ export function Tasks() {
                     toggle={toggle}
                     togglePersist={togglePersist}
                     togglePin={togglePin}
+                    updateContent={updateContent}
                     remove={remove}
                   />
                 ))}
@@ -245,6 +251,7 @@ export function Tasks() {
                   toggle={toggle}
                   togglePersist={togglePersist}
                   togglePin={togglePin}
+                  updateContent={updateContent}
                   remove={remove}
                 />
               ) : null}

@@ -10,6 +10,11 @@ export function LongTerm() {
   const [addingTaskId, setAddingTaskId] = useState<string | null>(null)
   const [taskInput, setTaskInput] = useState('')
 
+  // Edit State
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingType, setEditingType] = useState<'goal' | 'subtask' | null>(null)
+  const [editValue, setEditValue] = useState('')
+
   useEffect(() => {
     fetchLongTerms()
   }, [])
@@ -47,6 +52,46 @@ export function LongTerm() {
   const remove = async (id: string) => {
     await window.api.deleteLongTerm(id)
     fetchLongTerms()
+  }
+
+  const saveEdit = async () => {
+    if (!editingId || !editingType) return
+    
+    let original = ''
+    if (editingType === 'goal') {
+      original = longTerms.find(t => t.id === editingId)?.content
+    } else {
+      for (const t of longTerms) {
+        const st = t.subtasks?.find((s: any) => s.id === editingId)
+        if (st) {
+          original = st.content
+          break
+        }
+      }
+    }
+
+    if (editValue.trim() && editValue !== original) {
+      if (editingType === 'goal') {
+        await window.api.updateLongTermContent(editingId, editValue)
+      } else {
+        await window.api.updateLongTermSubtaskContent(editingId, editValue)
+      }
+      fetchLongTerms()
+      fetchTasks()
+    }
+    setEditingId(null)
+    setEditingType(null)
+    setEditValue('')
+  }
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveEdit()
+    } else if (e.key === 'Escape') {
+      setEditingId(null)
+      setEditingType(null)
+      setEditValue('')
+    }
   }
 
   return (
@@ -90,7 +135,29 @@ export function LongTerm() {
                 </button>
                 
                 <span className={clsx("flex-1 transition-all leading-relaxed", t.status === 'COMPLETED' && "line-through text-white/30")}>
-                  {t.content}
+                  {editingId === t.id && editingType === 'goal' ? (
+                    <input
+                      autoFocus
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={saveEdit}
+                      onKeyDown={handleEditKeyDown}
+                      className="bg-transparent border-none outline-none text-white w-full p-0 m-0 font-[inherit]"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <span
+                      className="cursor-text select-none block w-full"
+                      onDoubleClick={(e) => {
+                        e.stopPropagation()
+                        setEditingId(t.id)
+                        setEditingType('goal')
+                        setEditValue(t.content)
+                      }}
+                    >
+                      {t.content}
+                    </span>
+                  )}
                 </span>
 
                 <button 
@@ -151,7 +218,31 @@ export function LongTerm() {
                       animate={{ opacity: 1, x: 0 }}
                       className="group flex items-center justify-between p-2 rounded-lg bg-white/5 border-l-2 border-indigo-400/50"
                     >
-                      <span className="text-xs text-white/60">{st.content}</span>
+                      <div className="flex-1 min-w-0 mr-2">
+                        {editingId === st.id && editingType === 'subtask' ? (
+                          <input
+                            autoFocus
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onBlur={saveEdit}
+                            onKeyDown={handleEditKeyDown}
+                            className="bg-transparent border-none outline-none text-white/60 text-xs w-full p-0 m-0 font-[inherit]"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span 
+                            className="text-xs text-white/60 cursor-text select-none block truncate"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation()
+                              setEditingId(st.id)
+                              setEditingType('subtask')
+                              setEditValue(st.content)
+                            }}
+                          >
+                            {st.content}
+                          </span>
+                        )}
+                      </div>
                       <button 
                         onClick={() => removeTask(st.id)}
                         className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:bg-white/10 rounded-md transition"

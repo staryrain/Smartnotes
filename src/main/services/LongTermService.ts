@@ -51,6 +51,35 @@ export class LongTermService {
     }
   }
 
+  static async updateContent(id: string, content: string) {
+    db.prepare('UPDATE LongTermGoal SET content = ? WHERE id = ?').run(content, id)
+    
+    const goal = db.prepare('SELECT * FROM LongTermGoal WHERE id = ?').get(id) as any
+    return {
+      ...goal,
+      createdAt: new Date(goal.createdAt)
+    }
+  }
+
+  static async updateSubtaskContent(id: string, content: string) {
+    // Update RecurringTask
+    db.prepare('UPDATE RecurringTask SET content = ? WHERE id = ?').run(content, id)
+    
+    // Also update today's DailyTask if it exists and is pending? 
+    // The user requirement is just "edit text". 
+    // If we update the recurring task, the future tasks will be correct.
+    // But if there is a DailyTask already generated for today from this recurring task, should we update it too?
+    // Probably yes, for consistency.
+    
+    db.prepare(`
+      UPDATE DailyTask 
+      SET content = ? 
+      WHERE recurringTaskId = ? AND type = 'TODAY' AND status != 'COMPLETED'
+    `).run(content, id)
+
+    return true
+  }
+
   static async deleteGoal(id: string) {
     const goal = db.prepare('SELECT * FROM LongTermGoal WHERE id = ?').get(id) as any
     if (!goal) return null

@@ -21,6 +21,7 @@ export function setupIPC() {
   handle('task:get', () => TaskService.getTasks())
   handle('task:create', (_, content, longTermId) => TaskService.createTask(content, longTermId))
   handle('task:updateStatus', (_, id, status) => TaskService.updateStatus(id, status))
+  handle('task:updateContent', (_, id, content) => TaskService.updateContent(id, content))
   handle('task:updatePersist', (_, id, isPersist) => TaskService.updatePersist(id, isPersist))
   handle('task:updatePin', (_, id, isPinned) => TaskService.updatePin(id, isPinned))
   handle('task:reorder', (_, ids) => TaskService.reorderTasks(ids))
@@ -31,14 +32,17 @@ export function setupIPC() {
   handle('plan:create', (_, content) => PlanService.createPlan(content))
   handle('plan:delete', (_, id) => PlanService.deletePlan(id))
   handle('plan:updateTime', (_, id, planDate, isCustomTime) => PlanService.updatePlanTime(id, planDate, isCustomTime))
+  handle('plan:updateContent', (_, id, content) => PlanService.updateContent(id, content))
   
   // Long Term
   handle('longterm:get', () => LongTermService.getGoals())
   handle('longterm:create', (_, content) => LongTermService.createGoal(content))
   handle('longterm:updateStatus', (_, id, status) => LongTermService.updateStatus(id, status))
+  handle('longterm:updateContent', (_, id, content) => LongTermService.updateContent(id, content))
   handle('longterm:delete', (_, id) => LongTermService.deleteGoal(id))
   handle('longterm:createSubtask', (_, longTermId, content) => LongTermService.createSubtask(longTermId, content))
   handle('longterm:deleteSubtask', (_, id) => LongTermService.deleteSubtask(id))
+  handle('longterm:updateSubtaskContent', (_, id, content) => LongTermService.updateSubtaskContent(id, content))
 
   // Achievements
   handle('achievement:get', () => AchievementService.getAchievements())
