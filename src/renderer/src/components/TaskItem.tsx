@@ -134,7 +134,7 @@ export const TaskItem = React.forwardRef<HTMLDivElement, TaskItemProps>(({
             </button>
             <button 
               onClick={(e) => togglePersist?.(e, task)}
-              className={clsx("p-1.5 rounded-lg transition opacity-0 group-hover:opacity-100", task.isPersist ? "text-amber-400" : "text-white/20 hover:text-white/60 hover:bg-white/10")}
+              className={clsx("p-1.5 rounded-lg transition", task.isPersist ? "text-amber-400 opacity-100" : "text-white/20 hover:text-white/60 hover:bg-white/10 opacity-0 group-hover:opacity-100")}
               title={task.isPersist ? "持久任务（明日不清除）" : "点击设为持久"}
               onPointerDown={(e) => e.stopPropagation()}
             >
