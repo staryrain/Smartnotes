@@ -206,4 +206,54 @@ src/
 
 # 新增
 1.任务置顶功能
+
 2.鼠标拖动任务项换位功能
+
+# 🚀 七、开发与构建指南
+
+## 1. 环境准备
+
+*   **Node.js**: 建议使用 v18.x 或更高版本。
+*   **包管理器**: 推荐使用 npm 或 pnpm。
+*   **构建工具 (Windows)**: 由于使用了 `better-sqlite3` 原生模块，Windows 用户可能需要安装 Python 和 Visual Studio C++ Build Tools (通常可通过 `npm install --global --production windows-build-tools` 或 Visual Studio Installer 安装)。
+
+## 2. 安装依赖
+
+```bash
+npm install
+```
+
+> **注意**: 安装过程中会自动执行 `postinstall` 脚本 (`electron-builder install-app-deps`)，确保 `better-sqlite3` 等原生模块针对 Electron 版本进行重新编译。如果安装失败，请检查构建工具是否齐全。
+
+## 3. 启动开发环境
+
+```bash
+npm run dev
+```
+
+该命令将同时启动 Main Process 和 Renderer Process 的热重载服务。
+
+## 4. 打包构建
+
+根据目标平台选择相应的构建命令：
+
+*   **Windows**:
+    ```bash
+    npm run build:win
+    ```
+*   **macOS**:
+    ```bash
+    npm run build:mac
+    ```
+*   **Linux**:
+    ```bash
+    npm run build:linux
+    ```
+
+构建产物将输出到 `dist_build` 目录。
+
+## 5. 常见问题排查
+
+*   **better-sqlite3 报错**: 
+    *   如果遇到 `Error: The module '...' was compiled against a different Node.js version`，请运行 `npm run postinstall` 手动触发原生模块重编译。
+    *   如果 `better-sqlite3` 无法找到绑定文件，请检查 `node_modules/better-sqlite3/build/Release` 目录是否存在。
