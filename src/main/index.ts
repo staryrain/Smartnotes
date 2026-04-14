@@ -132,6 +132,16 @@ app.whenReady().then(() => {
   setupWindowIPC()
   createWindow()
   createTray()
+
+  // Disable auto launch by default
+  if (app.isPackaged) {
+    app.setLoginItemSettings({
+      openAtLogin: false,
+      openAsHidden: false,
+      path: app.getPath('exe'),
+      args: []
+    })
+  }
   
   let lastCheckDate = new Date()
 
