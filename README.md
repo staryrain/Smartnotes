@@ -172,34 +172,44 @@ UI 风格参考：
 
 ---
 
-# 📂 六、推荐目录结构
+# 📂 六、目录结构
 
 ```
 src/
-├── main/
-│   ├── window/
+├── main/                          # 主进程
 │   ├── ipc/
-│   └── services/
-│       ├── task.service.ts
-│       ├── plan.service.ts
-│       ├── longterm.service.ts
-│       └── achievement.service.ts
+│   │   └── index.ts               # IPC 路由注册
+│   ├── services/
+│   │   ├── AchievementService.ts  # 成就服务
+│   │   ├── LongTermService.ts     # 长期目标服务
+│   │   ├── PlanService.ts         # 计划服务
+│   │   └── TaskService.ts         # 任务服务
+│   ├── db.ts                      # 数据库初始化
+│   └── index.ts                   # 主进程入口
 │
-├── renderer/
-│   ├── components/
-│   │   ├── Toolbar.tsx
-│   │   ├── TopBar.tsx (穿透/关闭)
-│   │   └── Layout.tsx
-│   ├── pages/
-│   │   ├── Tasks.tsx
-│   │   ├── Plan.tsx
-│   │   ├── LongTerm.tsx
-│   │   ├── Achievements.tsx
-│   │   └── Settings.tsx
-│   └── store/
-│       └── useStore.ts
+├── preload/
+│   └── index.ts                   # 预加载脚本，安全暴露 API
 │
-└── types/
+└── renderer/                      # 渲染进程
+    ├── src/
+    │   ├── components/
+    │   │   ├── SortableTaskItem.tsx  # 可拖拽任务项
+    │   │   ├── TaskItem.tsx          # 任务项组件
+    │   │   ├── Toolbar.tsx           # 底部工具栏
+    │   │   └── TopBar.tsx            # 顶部栏（穿透/关闭）
+    │   ├── pages/
+    │   │   ├── Achievements.tsx      # 成就页面
+    │   │   ├── LongTerm.tsx          # 长期计划页面
+    │   │   ├── Plan.tsx              # 计划页面
+    │   │   ├── Settings.tsx          # 设置页面
+    │   │   └── Tasks.tsx             # 任务页面
+    │   ├── store/
+    │   │   └── useStore.ts           # Zustand 状态管理
+    │   ├── App.tsx                   # 根组件
+    │   ├── env.d.ts                  # 类型声明
+    │   ├── index.css                 # 全局样式
+    │   └── main.tsx                  # 渲染进程入口
+    └── index.html                   # HTML 模板
 ```
 
 ---
